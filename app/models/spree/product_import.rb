@@ -549,7 +549,7 @@ module Spree
           taxon_hierarchy.split(/\s*\|\s*/).each do |hierarchy|
             hierarchy = hierarchy.split(/\s*>\s*/)
             taxonomy = Spree::Taxonomy.where("lower(spree_taxonomies.name) = ?", hierarchy.first.downcase).first
-            taxonomy = Taxonomy.create(:name => hierarchy) if taxonomy.nil? && ProductImport.settings[:create_missing_taxonomies]
+            taxonomy = Taxonomy.create(:name => hierarchy.first) if taxonomy.nil? && ProductImport.settings[:create_missing_taxonomies]
             #Check if the Taxonomy is valid
             unless taxonomy.valid?
               log(msg = "A product could not be imported - here is the information we have:\n" +
