@@ -315,7 +315,7 @@ module Spree
       brand = params_hash[:brand]
 
       #create and assign new product sku: brand + name + product.id
-      sku_product = "P" + name[0..2].upcase.to_s + "-" + product.id.to_s
+      sku_product = "P-" + name[0..2].upcase.to_s + "-" + product.id.to_s
 
       product.sku = sku_product
       product.slug = sku_product
