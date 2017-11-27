@@ -4,20 +4,23 @@
 # Original Author:: Josh McArthur
 # License:: MIT
 module Spree
-  class ProductError < StandardError; end;
-  class ImportError < StandardError; end;
-  class SkuError < StandardError; end;
+  class ProductError < StandardError;
+  end;
+  class ImportError < StandardError;
+  end;
+  class SkuError < StandardError;
+  end;
 
   class ProductImport < ActiveRecord::Base
 
     ENCODINGS= %w(UTF-8 iso-8859-1)
 
     has_attached_file :data_file,
-      :url => '/spree/product_data/data-files/:basename_:timestamp.:extension',
-      :path => ":rails_root/public/spree/product_data/data-files/:basename_:timestamp.:extension"
+                      :url => '/spree/product_data/data-files/:basename_:timestamp.:extension',
+                      :path => ":rails_root/public/spree/product_data/data-files/:basename_:timestamp.:extension"
     validates_attachment_presence :data_file
     #Content type of csv vary in different browsers.
-    validates_attachment :data_file, :presence => true, content_type: { content_type: ["text/csv", "text/plain", "text/comma-separated-values", "application/octet-stream", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"] }
+    validates_attachment :data_file, :presence => true, content_type: {content_type: ["text/csv", "text/plain", "text/comma-separated-values", "application/octet-stream", "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"]}
 
     after_destroy :destroy_products
 
@@ -63,7 +66,7 @@ module Spree
     def productsCount
       @file = self.data_file.path
       rows = open_spreadsheet(@file)
-			
+
       #rows = CSV.parse(open(self.data_file.url).read, :col_sep => ",", :quote_char => "'")
       return rows.count
     end
@@ -102,21 +105,22 @@ module Spree
 
     def _import_data
       begin
-        log("import data start",:debug)
+        log("import data start", :debug)
         @products_before_import = Spree::Product.all
         @skus_of_products_before_import = @products_before_import.map(&:sku)
         @file = self.data_file.path
 
         rows = open_spreadsheet(@file)
-        
+
         if ProductImport.settings[:first_row_is_headings]
           col = get_column_mappings(rows.row(1))
 
         else
           col = ProductImport.settings[:column_mappings]
+
         end
 
-         (2..rows.last_row).each do |i|
+        (2..rows.last_row).each do |i|
           row = rows.row(i)
           product_information = {}
 
@@ -143,33 +147,33 @@ module Spree
             product_information[:tax_category_id] = tc.id unless tc.nil?
           end
 
-          log("#{pp product_information}",:debug)
+          log("#{pp product_information}", :debug)
 
           variant_comparator_field = ProductImport.settings[:variant_comparator_field].try :to_sym
           variant_comparator_column = col[variant_comparator_field]
 
 
-          if ProductImport.settings[:create_variants] and variant_comparator_column and
+          if ProductImport.settings[:create_variants] and variant_comparator_column and row[variant_comparator_column]!= nil and
               #p = Product.with_translations().where(Product.table_name+'.'+variant_comparator_field.to_s => row[variant_comparator_column]).first #only(:product,:where)
               p = Product.where(variant_comparator_field.to_s => row[variant_comparator_column].downcase).first #only(:product,:where)
             # Product exists
             p.update_attribute(:deleted_at, nil) if p.deleted_at #Un-delete product if it is there
-            p.variants.each { |variant| variant.update_attribute(:deleted_at, nil) }
-            update_product(p,product_information)
+            p.variants.each {|variant| variant.update_attribute(:deleted_at, nil)}
+            update_product(p, product_information)
           else
             #product doesn't exists
-            if  p = Product.where(:name => product_information[:name], :description => product_information[:description] ).first
-                # Product exists
-                p.update_attribute(:deleted_at, nil) if p.deleted_at #Un-delete product if it is there
-                p.variants.each { |variant| variant.update_attribute(:deleted_at, nil) }
-                update_product(p,product_information)
-            else    
-                if (@skus_of_products_before_import.include?(product_information[:sku]))
-                  log(msg="SKU #{product_information[:sku]} exists, but slug #{prod.slug} not exists!! ",:error)
-                  raise ProductError, msg
-                end
+            if p = Product.where(:name => product_information[:name], :description => product_information[:description]).first
+              # Product exists
+              p.update_attribute(:deleted_at, nil) if p.deleted_at #Un-delete product if it is there
+              p.variants.each {|variant| variant.update_attribute(:deleted_at, nil)}
+              update_product(p, product_information)
+            else
+              if (@skus_of_products_before_import.include?(product_information[:sku]))
+                log(msg="SKU #{product_information[:sku]} exists, but slug #{prod.slug} not exists!! ", :error)
+                raise ProductError, msg
+              end
 
-                next unless create_product(product_information)
+              next unless create_product(product_information)
             end
           end
         end
@@ -185,34 +189,38 @@ module Spree
     end
 
     private
-    
+
     def open_spreadsheet(file)
       case File.extname(file)
-      when ".csv" then Roo::CSV.new(file)
-      when ".xls" then Roo::Excel.new(file)
-      when ".xlsx" then Roo::Excelx.new(file)
-      else raise "Unknown file type: #{file}"
+        when ".csv" then
+          Roo::CSV.new(file)
+        when ".xls" then
+          Roo::Excel.new(file)
+        when ".xlsx" then
+          Roo::Excelx.new(file)
+        else
+          raise "Unknown file type: #{file}"
       end
     end
 
     def create_product(params_hash)
-      
+
       log("CREATE PRODUCT:"+params_hash.inspect)
 
       product = Product.new
       properties_hash = Hash.new
-    
-			#2BeDigital: Manually set retail_only if it is not already set
-			params_hash[:retail_only] = 0 if params_hash[:retail_only].nil?
-					
+
+      #2BeDigital: Manually set retail_only if it is not already set
+      params_hash[:retail_only] = 0 if params_hash[:retail_only].nil?
+
       # Array of special fields. Prevent adding them to properties.
-      special_fields  = ProductImport.settings.values_at(
+      special_fields = ProductImport.settings.values_at(
           :image_fields,
           :taxonomy_fields,
           :store_field,
           :variant_comparator_field
       ).flatten.map(&:to_s)
-      
+
 
       params_hash.each do |field, value|
         if (field.to_s.eql?('master_price'))
@@ -221,31 +229,31 @@ module Spree
           product.sku="default"
         elsif (product.respond_to?("#{field}="))
           product.send("#{field}=", value)
-        elsif not special_fields.include?(field.to_s) and property = Property.where("lower(name) = ?", field).first and value != nil
+        elsif not special_fields.include?(field.to_s) and property = Property.where("lower(name) = ?", field).first and value.present?
           properties_hash[property] = value
         end
       end
       if params_hash[:sku] == "default"
-        save_product(product,params_hash,properties_hash,true)
+        save_product(product, params_hash, properties_hash, true, "new")
       else
-        save_product(product,params_hash,properties_hash,true)
+        save_product(product, params_hash, properties_hash, true, "new")
       end
-    
-      
+
+
     end
 
-    def update_product(product,params_hash)
+    def update_product(product, params_hash)
 
       log("UPATE PRODUCT:"+params_hash.inspect)
       properties_hash = Hash.new
 
-			#2BeDigital: If exists retail_only key without value, we assign false, to avoid null values.
-			if (params_hash.key?(:retail_only) and params_hash[:retail_only].nil?) 
-				params_hash[:retail_only] = 0
-			end
-			
+      #2BeDigital: If exists retail_only key without value, we assign false, to avoid null values.
+      if (params_hash.key?(:retail_only) and params_hash[:retail_only].nil?)
+        params_hash[:retail_only] = 0
+      end
+
       # Array of special fields. Prevent adding them to properties.
-      special_fields  = ProductImport.settings.values_at(
+      special_fields = ProductImport.settings.values_at(
           :image_fields,
           :taxonomy_fields,
           :store_field,
@@ -256,7 +264,7 @@ module Spree
       # after update the product.
       product_fields=product.attribute_names
       product_hash=Hash.new
-      params_hash.each do |key,value|
+      params_hash.each do |key, value|
         if product_fields.include?(key.to_s)
           product_hash[key]=value
         end
@@ -272,12 +280,12 @@ module Spree
         end
       end
 
-      save_product(product,params_hash,properties_hash,false)
+      save_product(product, params_hash, properties_hash, false, "no")
     end
 
-    def save_product(product,params_hash,properties_hash,create)
+    def save_product(product, params_hash, properties_hash, create, create_image)
 
-      
+
       log("SAVE PRODUCT:"+product.inspect)
 
       #We can't continue without a valid product here
@@ -285,7 +293,7 @@ module Spree
 
 
         log(msg = "A product could not be imported - here is the information we have:\n" +
-            "#{product.inspect} #{product.errors.full_messages.join(', ')}",:error)
+            "#{product.inspect} #{product.errors.full_messages.join(', ')}", :error)
         raise ProductError, msg
       end
       log("Save product:"+product.name)
@@ -295,7 +303,7 @@ module Spree
       #Save the object before creating asssociated objects
       product.save and product_ids << product.id
       log("Saved object before creating associated objects for: #{product.name}")
-      
+
 
       #In creates, slug is assigned automatically, and is not assigned to the csv value.
       #So we have to do this assginment manually.
@@ -303,13 +311,15 @@ module Spree
         product.slug=params_hash[:slug]
         product.save
       end
+      name = params_hash[:name]
+      brand = params_hash[:brand]
 
-        #create and assign new product sku: brand + name + product.id
-        sku_product = "PM" + "-" + params_hash[:name][0..2].upcase + "-" + params_hash[:brands][0..2].upcase + "-" + product.id.to_s
-        
-        product.sku = sku_product
-        product.slug = sku_product
-        product.save
+      #create and assign new product sku: brand + name + product.id
+      sku_product = "P" + name[0..2].upcase.to_s + "-" + product.id.to_s
+
+      product.sku = sku_product
+      product.slug = sku_product
+      product.save
 
       variant=create_variant_for(product, :with => params_hash)
 
@@ -319,17 +329,18 @@ module Spree
         product_property.value = value
         product_property.save!
       end
-      
+
       #Associate our new product with any taxonomies that we need to worry about
       ProductImport.settings[:taxonomy_fields].each do |field|
-        associate_product_with_taxon(product, field.to_s, params_hash[field.to_sym],create)
+        associate_product_with_taxon(product, field.to_s, params_hash[field.to_sym], create)
+      end
+      if create_image.include? "new"
+        #Finally, attach any images that have been specified
+        ProductImport.settings[:image_fields_products].each do |field|
+          find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
+        end
       end
 
-      #Finally, attach any images that have been specified
-      ProductImport.settings[:image_fields_products].each do |field|
-        find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
-      end
-      
       if ProductImport.settings[:multi_domain_importing] && product.respond_to?(:stores)
         begin
           store = Store.find(
@@ -357,11 +368,11 @@ module Spree
     # size/color options
     def create_variant_for(product, options = {:with => {}})
       return if options[:with].nil?
-      
+
       # Just update variant if exists
-      unless options[:with][:sku].nil?        
-        variant = Variant.find_by_sku(options[:with][:sku]) 
-        raise SkuError, "SKU #{variant.sku} should belongs to #{product.inspect} but was #{variant.product.inspect}" if variant && variant.product != product 
+      unless options[:with][:sku].nil?
+        variant = Variant.find_by_sku(options[:with][:sku])
+        raise SkuError, "SKU #{variant.sku} should belongs to #{product.inspect} but was #{variant.product.inspect}" if variant && variant.product != product
       end
       if !variant
         variant = product.variants.new
@@ -371,9 +382,10 @@ module Spree
       end
 
       field = ProductImport.settings[:variant_comparator_field]
-      log("VARIANT:: #{variant.inspect}  /// #{options.inspect } /// #{options[:with][field]} /// #{field}",:debug)
-      
+      log("VARIANT:: #{variant.inspect}  /// #{options.inspect } /// #{options[:with][field]} /// #{field}", :debug)
+
       options[:with].each do |field, value|
+
         if (field.to_s.eql?('master_price'))
           variant.price=value
         else
@@ -382,23 +394,33 @@ module Spree
 
         #We only apply OptionTypes if value is not null.
         if (value && !(field.to_s =~ /^(sku|slug|name|description|price|on_hand|taxonomies|image_product|alt_product|available_on|shipping_category_id).*$/))
+          field.downcase
           applicable_option_type = OptionType.where(name: field.to_s).or(OptionType.where(presentation: field.to_s)).first
           if applicable_option_type.is_a?(OptionType)
             product.option_types << applicable_option_type unless product.option_types.include?(applicable_option_type)
-            opt_value = applicable_option_type.option_values.where(presentation: value).or(applicable_option_type.option_values.where(name:value)).first
+            opt_value = applicable_option_type.option_values.where(presentation: value).or(applicable_option_type.option_values.where(name: value)).first
             opt_value = applicable_option_type.option_values.create(:presentation => value, :name => value) unless opt_value
             variant.option_values << opt_value unless variant.option_values.include?(opt_value)
           end
         end
       end
-      if options[:with][:sku].nil? 
-        variant_sku = "P" + "-" + options[:with][:name][0..2].upcase.to_s + "-" + options[:with][:size_clothes].gsub(/\s+/, '').upcase.to_s + "-" + options[:with][:condition][0..1].upcase.to_s + "-" + options[:with][:color][0..1].upcase.to_s + "-" + options[:with][:brands][0..2].upcase.to_s + "-" + product.id.to_s
+      if options[:with][:sku].nil?
+        if options[:with][:size_clothes].include? "Talla"
+          size = "uniq"
+        else
+          size = options[:with][:size_clothes].to_s
+        end
+
+        color = options[:with][:color].to_s
+        condition = options[:with][:condition].to_s
+
+        variant_sku = product.sku + "-" + size[0..3].upcase + "-" + condition[0..1].upcase + "-" + color[0..1].upcase
         variant.sku = variant_sku
       end
 
-      log("VARIANT PRICE #{variant.inspect} /// #{variant.price}",:debug)
+      log("VARIANT PRICE #{variant.inspect} /// #{variant.price}", :debug)
 
-      if variant.valid? 
+      if variant.valid?
         variant.save
 
         #Finally, attach any images that have been specified
@@ -416,16 +438,16 @@ module Spree
 
       #Stock item
       source_location = Spree::StockLocation.find_by(default: true)
-      log("SourceLocation: #{source_location.inspect}",:debug)
-      if source_location  
+      log("SourceLocation: #{source_location.inspect}", :debug)
+      if source_location
         stock_item = variant.stock_items.where(stock_location_id: source_location.id).first_or_initialize
-        log("StockItem: #{stock_item.inspect}",:debug)
-        log("OnHand: #{options[:with][:on_hand]}",:debug)
+        log("StockItem: #{stock_item.inspect}", :debug)
+        log("OnHand: #{options[:with][:on_hand]}", :debug)
         #We only update the stock if stock is not blank.
-				if (options[:with][:backorderable])
-				  if stock_item.respond_to?("backorderable=")
-						stock_item.send("backorderable=", options[:with][:backorderable])
-					end
+        if (options[:with][:backorderable])
+          if stock_item.respond_to?("backorderable=")
+            stock_item.send("backorderable=", options[:with][:backorderable])
+          end
         end
         if (options[:with][:on_hand])
           stock_item.set_count_on_hand(options[:with][:on_hand])
@@ -475,7 +497,7 @@ module Spree
     # find_and_attach_image_to
     # This method attaches images to products. The images may come
     # from a local source (i.e. on disk), or they may be online (HTTP/HTTPS).
-    def find_and_attach_image_to(product_or_variant, filename,alt_text)
+    def find_and_attach_image_to(product_or_variant, filename, alt_text)
       return if filename.blank?
 
       #The image can be fetched from an HTTP or local source - either method returns a Tempfile
@@ -489,7 +511,7 @@ module Spree
                                         :position => product_or_variant.images.length
                                        })
 
-      log("#{product_image.viewable_id} : #{product_image.viewable_type} : #{product_image.position}",:debug)
+      log("#{product_image.viewable_id} : #{product_image.viewable_type} : #{product_image.position}", :debug)
 
       product_or_variant.images << product_image if product_image.save
     end
@@ -516,7 +538,11 @@ module Spree
     def fetch_remote_image(filename)
       begin
         io = open(URI.parse(filename))
-        def io.original_filename; base_uri.path.split('/').last; end
+
+        def io.original_filename;
+          base_uri.path.split('/').last;
+        end
+
         return io
       rescue OpenURI::HTTPError => error
         log("Image #{filename} retrival returned #{error.message}, so this image was not imported")
@@ -537,7 +563,7 @@ module Spree
     # a particular taxon to be picked out
     # 3. An item > item & item > item will work as above, but will associate multiple
     # taxons with that product. This form should also work with format 1.
-    def associate_product_with_taxon(product, taxonomy, taxon_hierarchy,putInTop)
+    def associate_product_with_taxon(product, taxonomy, taxon_hierarchy, putInTop)
       return if product.nil? || taxonomy.nil? || taxon_hierarchy.nil?
 
       #Using find_or_create_by_name is more elegant, but our magical params code automatically downcases
@@ -546,46 +572,47 @@ module Spree
       # taxonomy = Taxonomy.find(:first, :conditions => ["lower(name) = ?", taxonomy])
       # taxonomy = Taxonomy.create(:name => taxonomy_name.capitalize) if taxonomy.nil? && ProductImport.settings[:create_missing_taxonomies]
       taxon_hierarchy.split("&").each do |taxon_hierarchy|
-          taxon_hierarchy.split(/\s*\|\s*/).each do |hierarchy|
-            hierarchy = hierarchy.split(/\s*>\s*/)
-            taxonomy = Spree::Taxonomy.where("lower(spree_taxonomies.name) = ?", hierarchy.first.downcase).first
-            taxonomy = Taxonomy.create(:name => hierarchy.first) if taxonomy.nil? && ProductImport.settings[:create_missing_taxonomies]
+        taxon_hierarchy.split(/\s*\|\s*/).each do |hierarchy|
+          hierarchy = hierarchy.split(/\s*>\s*/)
+          taxonomy = Spree::Taxonomy.where("lower(spree_taxonomies.name) = ?", hierarchy.first.downcase).first
+          taxonomy = Taxonomy.create(:name => hierarchy.first) if taxonomy.nil? && ProductImport.settings[:create_missing_taxonomies]
+          #Check if the Taxonomy is valid
+          unless taxonomy.valid?
+            log(msg = "A product could not be imported - here is the information we have:\n" +
+                "Product: #{product.inspect}, Taxonomy: #{taxon_hierarchy}, Errors: #{taxonomy.errors.full_messages.join(', ')} \n", :error)
+            raise ProductError, msg
+          end
+
+          last_taxon = taxonomy.root
+
+          hierarchy.shift
+          hierarchy.each do |taxon|
+            taxon.strip
+            #last_taxon = last_taxon.children.find_or_create_by_name_and_taxonomy_id(taxon, taxonomy.id)
+            last_taxon = last_taxon.children.find_or_create_by(name: taxon, taxonomy_id: taxonomy.id)
             #Check if the Taxonomy is valid
-            unless taxonomy.valid?
+            unless last_taxon.valid?
               log(msg = "A product could not be imported - here is the information we have:\n" +
-                  "Product: #{product.inspect}, Taxonomy: #{taxon_hierarchy}, Errors: #{taxonomy.errors.full_messages.join(', ')} \n",:error)
+                  "Product: #{product.inspect}, Taxonomy: #{taxonomy.inspect}, Taxon: #{last_taxon.inspect}, #{last_taxon.errors.full_messages.join(', ')}", :error)
               raise ProductError, msg
             end
-
-            last_taxon = taxonomy.root
-
-            hierarchy.shift
-            hierarchy.each do |taxon|
-              taxon.gsub(/\s+/, '')
-              #last_taxon = last_taxon.children.find_or_create_by_name_and_taxonomy_id(taxon, taxonomy.id)
-              last_taxon = last_taxon.children.find_or_create_by(name: taxon, taxonomy_id: taxonomy.id)
-              #Check if the Taxonomy is valid
-              unless last_taxon.valid?
-                log(msg = "A product could not be imported - here is the information we have:\n" +
-                    "Product: #{product.inspect}, Taxonomy: #{taxonomy.inspect}, Taxon: #{last_taxon.inspect}, #{last_taxon.errors.full_messages.join(', ')}",:error)
-                raise ProductError, msg
-              end
-            end
-            #Spree only needs to know the most detailed taxonomy item
-            product.taxons << last_taxon unless product.taxons.include?(last_taxon)
           end
+          #Spree only needs to know the most detailed taxonomy item
+          product.taxons << last_taxon unless product.taxons.include?(last_taxon)
         end
-      
+      end
+
       if (putInTop and defined?(SolidusSortProductsTaxon))
-        if(SolidusSortProductsTaxon::Config.activated)
+        if (SolidusSortProductsTaxon::Config.activated)
           unless product.put_in_taxons_top(product.taxons)
             log(msg = "A product could not be imported - here is the information we have:\n" +
-                "Product: #{product.inspect}, Taxons: #{product.taxons}, #{product.errors.full_messages.join(', ')}",:error)
+                "Product: #{product.inspect}, Taxons: #{product.taxons}, #{product.errors.full_messages.join(', ')}", :error)
             raise ProductError, msg
           end
         end
       end
     end
+
     ### END TAXON HELPERS ###
 
     # May be implemented via decorator if useful:
@@ -608,7 +635,9 @@ module Spree
     # TODO: Translate slug
     def add_translations(product, params_hash)
       localeProduct=params_hash[:locale]
-      if (localeProduct.nil?) then return end
+      if (localeProduct.nil?) then
+        return
+      end
 
       translations_names=product.translations.attribute_names
       #product_fields=product.attribute_names
@@ -621,7 +650,7 @@ module Spree
       #   #translations_names << ProductImport.settings[:variant_comparator_field_i18n].to_s
       # end
       translation=product.translations.where(locale: localeProduct).first_or_initialize
-      params_hash.each do |key,value|
+      params_hash.each do |key, value|
         if translations_names.include?(key.to_s)
           #Detectamos si el campo és el slug traducido, y en tal caso, lo añadimos
           #con el nombre "slug"
@@ -635,6 +664,7 @@ module Spree
       end
       translation.save
     end
+
     #Special process of prices because of locales and different decimal separator characters.
     #We want to get a format with dot as decimal separator and without thousand separator
     def convertToPrice(priceStr)
