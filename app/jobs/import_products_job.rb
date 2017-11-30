@@ -1,5 +1,5 @@
 class ImportProductsJob < ActiveJob::Base
-	include SuckerPunch::Job
+  include Sidekiq::Worker
   queue_as :default
 
 	after_perform :notify_admin
