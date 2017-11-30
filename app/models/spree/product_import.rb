@@ -503,7 +503,7 @@ module Spree
 
       #The image can be fetched from an HTTP or local source - either method returns a Tempfile
       file = filename =~ /\Ahttp[s]*:\/\// ? fetch_remote_image(filename) : fetch_local_image(filename)
-      raise "#{filename}"
+
       #An image has an attachment (the image file) and some object which 'views' it
       product_image = Spree::Image.new({:attachment => file,
                                         :viewable_id => product_or_variant.id,
@@ -526,7 +526,18 @@ module Spree
         log("Image #{filename} was not found on the server, so this image was not imported.", :warn)
         return nil
       else
-        return File.open(filename, 'rb')
+        return File.open(Rails.root.join('tmp', filename), 'wb')
+        begin
+          temp_file.write(uploaded_file.read)
+          temp_file.close
+
+          box_user = Box.user_client(session[:box_id])
+          box_file = box_user.upload_file(temp_file.path, folder)
+        rescue => ex
+          puts ex.message
+        ensure
+          File.delete(temp_file)
+        end
       end
     end
 
