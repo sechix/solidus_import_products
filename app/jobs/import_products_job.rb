@@ -1,5 +1,4 @@
 class ImportProductsJob < ActiveJob::Base
-  include Sidekiq::Worker
   queue_as :default
 
 	after_perform :notify_admin
