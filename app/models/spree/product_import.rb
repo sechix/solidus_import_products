@@ -335,11 +335,12 @@ module Spree
       ProductImport.settings[:taxonomy_fields].each do |field|
         associate_product_with_taxon(product, field.to_s, params_hash[field.to_sym], create)
       end
+      if create_image.include? "new"
         #Finally, attach any images that have been specified
         ProductImport.settings[:image_fields_products].each do |field|
           find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
         end
-      
+      end
 
       if ProductImport.settings[:multi_domain_importing] && product.respond_to?(:stores)
         begin
@@ -502,7 +503,7 @@ module Spree
 
       #The image can be fetched from an HTTP or local source - either method returns a Tempfile
       file = filename =~ /\Ahttp[s]*:\/\// ? fetch_remote_image(filename) : fetch_local_image(filename)
-
+      raise "#{file}"
       #An image has an attachment (the image file) and some object which 'views' it
       product_image = Spree::Image.new({:attachment => file,
                                         :viewable_id => product_or_variant.id,
