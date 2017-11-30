@@ -18,7 +18,7 @@ module Spree
 
       has_attached_file :data_file,
                         :url => '/spree/product_data/data-files/:basename_:timestamp.:extension',
-                        :path => ":rails_root/public/spree/product_data/data-files/:basename_:timestamp.:extension"
+                        :path => ":rails_root/spree/product_data/data-files/:basename_:timestamp.:extension"
 
 
 
