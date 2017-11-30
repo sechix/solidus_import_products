@@ -1,4 +1,6 @@
 class ImportProductsJob < ActiveJob::Base
+  include SuckerPunch::Job
+  3
   queue_as :default
 
 	after_perform :notify_admin
