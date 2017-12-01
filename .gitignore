@@ -5,6 +5,7 @@
 .idea
 .project
 tmp
+public/spree
 nbproject
 *.swp
 .rvmrc
