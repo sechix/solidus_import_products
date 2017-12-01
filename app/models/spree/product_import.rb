@@ -15,16 +15,8 @@ module Spree
 
     ENCODINGS= %w(UTF-8 iso-8859-1)
 
-    if Rails.env.production?
       has_attached_file :data_file,
                         :url => '/spree/product_data/data-files/:basename_:timestamp.:extension'
-    else
-      has_attached_file :data_file,
-                        :url => '/spree/product_data/data-files/:basename_:timestamp.:extension'
-
-    end
-
-
 
 
     validates_attachment_presence :data_file
