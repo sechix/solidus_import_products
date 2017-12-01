@@ -3,9 +3,6 @@ class ImportProductsJob < ActiveJob::Base
 
 	after_perform :notify_admin
 
-  rescue_from(ErrorLoadingSite) do
-    retry_job wait: 5.minutes, queue: :low_priority
-  end
   rescue_from(StandardError) do |exception|
     Rails.logger.error("[ActiveJob] [#{self.class}] [#{job_id}] ID: #{@product_id} #{exception}")
 		products=Spree::ProductImport.find(@product_id)
