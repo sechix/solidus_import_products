@@ -17,7 +17,7 @@ module Spree
 
     if Rails.env.production?
       has_attached_file :data_file,
-                        :url => '/spree/product_data/data-files/:basename_:timestamp.:extension',
+                        :url => '/spree/product_data/data-files/:basename_:timestamp.:extension'
     else
       has_attached_file :data_file,
                         :url => '/spree/product_data/data-files/:basename_:timestamp.:extension',
