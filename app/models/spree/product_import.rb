@@ -107,12 +107,7 @@ module Spree
         log("import data start", :debug)
         @products_before_import = Spree::Product.all
         @skus_of_products_before_import = @products_before_import.map(&:sku)
-        @file = self.data_file.url
-
-        @file2 = self.data_file.path
-
-
-        raise "#{@file}, #{@file2}"
+        @file = "https://s3.eu-west-2.amazonaws.com/pislow" + self.data_file.url
 
         rows = open_spreadsheet(@file)
 
