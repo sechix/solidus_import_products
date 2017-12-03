@@ -108,7 +108,11 @@ module Spree
         @products_before_import = Spree::Product.all
         @skus_of_products_before_import = @products_before_import.map(&:sku)
         @file = self.data_file.url
-        raise "#{@file}"
+
+        @file2 = self.data_file.path
+
+
+        raise "#{@file}, #{@file2}"
 
         rows = open_spreadsheet(@file)
 
