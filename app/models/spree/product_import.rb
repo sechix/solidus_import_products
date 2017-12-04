@@ -61,7 +61,11 @@ module Spree
     end
     #Return the number of rows in CSV.
     def productsCount
-      @file = self.data_file.url
+      if Rails.env.production?
+        @file = ENV.fetch("CDN_HOST_ALL") + self.data_file.path
+      else
+        @file = self.data_file.path
+      end
       rows = open_spreadsheet(@file)
 
       #rows = CSV.parse(open(self.data_file.url).read, :col_sep => ",", :quote_char => "'")
@@ -105,7 +109,13 @@ module Spree
         log("import data start", :debug)
         @products_before_import = Spree::Product.all
         @skus_of_products_before_import = @products_before_import.map(&:sku)
-        @file = self.data_file.url
+        if Rails.env.production?
+          @file = ENV.fetch("CDN_HOST_ALL") + self.data_file.path
+        else
+          @file = self.data_file.path
+        end
+
+
 
         rows = open_spreadsheet(@file)
 
