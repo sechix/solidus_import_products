@@ -345,29 +345,7 @@ module Spree
       if create_image.include? "new"
         #Finally, attach any images that have been specified
         ProductImport.settings[:image_fields_products].each do |field|
-          if field == 'image_1'
-            find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_products].each do |field|
-          if field == 'image_2'
-            find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_products].each do |field|
-          if field == 'image_3'
-            find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_products].each do |field|
-          if field == 'image_4'
-            find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_products].each do |field|
-          if field == 'image_5'
-            find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
-          end
+          find_and_attach_image_to(product, params_hash[field.to_sym], params_hash[ProductImport.settings[:image_text_products].to_sym])
         end
       end
 
@@ -455,29 +433,7 @@ module Spree
 
         #Finally, attach any images that have been specified
         ProductImport.settings[:image_fields_variants].each do |field|
-          if field == 'variant_1'
-            find_and_attach_image_to(variant, options[:with][field.to_sym], options[:with][ProductImport.settings[:image_text_variants].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_variants].each do |field|
-          if field == 'variant_2'
-            find_and_attach_image_to(variant, options[:with][field.to_sym], options[:with][ProductImport.settings[:image_text_variants].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_variants].each do |field|
-          if field == 'variant_3'
-            find_and_attach_image_to(variant, options[:with][field.to_sym], options[:with][ProductImport.settings[:image_text_variants].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_variants].each do |field|
-          if field == 'variant_4'
-            find_and_attach_image_to(variant, options[:with][field.to_sym], options[:with][ProductImport.settings[:image_text_variants].to_sym])
-          end
-        end
-        ProductImport.settings[:image_fields_variants].each do |field|
-          if field == 'variant_5'
-            find_and_attach_image_to(variant, options[:with][field.to_sym], options[:with][ProductImport.settings[:image_text_variants].to_sym])
-          end
+          find_and_attach_image_to(variant, options[:with][field.to_sym], options[:with][ProductImport.settings[:image_text_variants].to_sym])
         end
 
         #Log a success message
