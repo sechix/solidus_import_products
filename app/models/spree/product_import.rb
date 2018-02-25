@@ -573,6 +573,7 @@ module Spree
     # taxons with that product. This form should also work with format 1.
     def associate_product_with_taxon(product, taxonomy, taxon_hierarchy, putInTop)
       return if product.nil? || taxonomy.nil? || taxon_hierarchy.nil?
+      taxon_hierarchy.to_s
       taxon_hierarchy.gsub("mujer","woman")
       taxon_hierarchy.gsub("hombre","man")
       taxon_hierarchy.gsub("niños", "kids")
