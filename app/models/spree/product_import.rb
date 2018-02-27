@@ -573,48 +573,7 @@ module Spree
     # taxons with that product. This form should also work with format 1.
     def associate_product_with_taxon(product, taxonomy, taxon_hierarchy, putInTop)
       return if product.nil? || taxonomy.nil? || taxon_hierarchy.nil?
-      taxon_hierarchy.to_s
-      taxon_hierarchy.gsub("mujer","woman")
-      taxon_hierarchy.gsub("hombre","man")
-      taxon_hierarchy.gsub("niños", "kids")
-      taxon_hierarchy.gsub("ropa", "clothes")
-      taxon_hierarchy.gsub("vestidos","dresses")
-      # taxon_hierarchy["mujer"] = "mini"
-      # taxon_hierarchy["mujer"] = "midi"
-      # taxon_hierarchy["mujer"] = "maxi"
-      taxon_hierarchy.gsub("camisetas y tops","tshirts_and_tops")
-      taxon_hierarchy.gsub("manga corta","short_sleeve")
-      # taxon_hierarchy["mujer"] = "tops"
-      # taxon_hierarchy["mujer"] = "bodies"
-      taxon_hierarchy.gsub("crop tops","crop_tops")
-      taxon_hierarchy.gsub("manga larga", "long_sleeve")
-      taxon_hierarchy.gsub("chaquetas","jackets")
-      # taxon_hierarchy["mujer"] = "kimono"
-      # taxon_hierarchy["mujer"] = "nightlife"
-      taxon_hierarchy.gsub("chalecos","vest")
-      taxon_hierarchy.gsub("americana","american")
-      # taxon_hierarchy["mujer"] = "bomber"
-      taxon_hierarchy.gsub("cazadoras","huntress")
-      taxon_hierarchy.gsub("punto y jerseys","knitwear")
-      taxon_hierarchy.gsub("camisas y blusas", "shirts_and_blouses")
-      taxon_hierarchy.gsub("blusas","blouses")
-      taxon_hierarchy.gsub("camisas","shirts")
-      taxon_hierarchy.gsub("mujer","smock")
-      taxon_hierarchy.gsub("pantalones","pants")
-      taxon_hierarchy.gsub("vaqueros","jeans")
-      # taxon_hierarchy["mujer"] = "shorts"
-      taxon_hierarchy.gsub("faldas","skirts")
-      taxon_hierarchy.gsub("monos","jumpsuits")
-      taxon_hierarchy.gsub("mono largo","jumpsuit_long")
-      taxon_hierarchy.gsub("mono corto","jumpsuit_short")
-      taxon_hierarchy.gsub("abrigos","coats")
-      taxon_hierarchy.gsub("bolsos","bags")
-      taxon_hierarchy.gsub("accesorios","accesories")
-      taxon_hierarchy.gsub("collares","necklaces")
-      taxon_hierarchy.gsub("pulseras","bracelets")
-      taxon_hierarchy.gsub("fulares y pañuelos","foulards")
-      # taxon_hierarchy["ponchos"] = "ponchos"
-      taxon_hierarchy.gsub("pendientes","slopes")
+
       #Using find_or_create_by_name is more elegant, but our magical params code automatically downcases
       # the taxonomy name, so unless we are using MySQL, this isn't going to work.
       # taxonomy_name = taxonomy
