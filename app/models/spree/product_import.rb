@@ -237,7 +237,7 @@ module Spree
         elsif (product.respond_to?("#{field}="))
           product.send("#{field}=", value)
         elsif not special_fields.include?(field.to_s) and property = Property.where("lower(name) = ?", field).first and value.present?
-          properties_hash[property] = value
+          properties_hash[property] = value.capitalize
         end
       end
       if params_hash[:sku] == "default"
@@ -283,7 +283,7 @@ module Spree
             product.send("#{field}=", value)
           end
         elsif not special_fields.include?(field.to_s) and property = Property.where("lower(name) = ?", field).first
-          properties_hash[property] = value.capitalize
+          properties_hash[property] = value.capitalize!
         end
       end
 
@@ -291,8 +291,7 @@ module Spree
     end
 
     def save_product(product, params_hash, properties_hash, create, create_image)
-
-
+      product.name.capitalize!
       log("SAVE PRODUCT:"+product.inspect)
 
       #We can't continue without a valid product here
@@ -319,7 +318,7 @@ module Spree
         product.save
       end
       name = params_hash[:name]
-      name.capitalize!
+
       brand = params_hash[:brand]
       brand.capitalize!
       category_sku = params_hash[:category_sku]
@@ -394,6 +393,10 @@ module Spree
       field = ProductImport.settings[:variant_comparator_field]
       log("VARIANT:: #{variant.inspect}  /// #{options.inspect } /// #{options[:with][field]} /// #{field}", :debug)
 
+      options[:with][:size_clothes].upcase!
+      options[:with][:color].downcase!
+      options[:with][:condition].downcase!
+
       options[:with].each do |field, value|
 
         if (field.to_s.eql?('master_price'))
@@ -418,11 +421,11 @@ module Spree
         if options[:with][:size_clothes].include? "Talla"
           size = "uniq"
         else
-          size = options[:with][:size_clothes].upcase.to_s
+          size = options[:with][:size_clothes].to_s
         end
 
-        color = options[:with][:color].downcase.to_s
-        condition = options[:with][:condition].downcase.to_s
+        color = options[:with][:color].to_s
+        condition = options[:with][:condition].to_s
 
         variant_sku = product.sku + "-" + size[0..3].upcase + "-" + condition[0..1].upcase + "-" + color[0..1].upcase
         variant.sku = variant_sku
