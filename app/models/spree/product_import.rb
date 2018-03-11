@@ -283,7 +283,7 @@ module Spree
             product.send("#{field}=", value)
           end
         elsif not special_fields.include?(field.to_s) and property = Property.where("lower(name) = ?", field).first
-          properties_hash[property] = value.capitalize!
+          properties_hash[property] = value.capitalize! unless value.nil?
         end
       end
 
@@ -320,7 +320,6 @@ module Spree
       name = params_hash[:name]
 
       brand = params_hash[:brand]
-      brand.capitalize!
       category_sku = params_hash[:category_sku]
 
       #create and assign new product sku: brand + name + product.id
